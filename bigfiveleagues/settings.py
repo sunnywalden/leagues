@@ -22,15 +22,15 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100
 #ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 #DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
-#CONCURRENT_REQUESTS_PER_DOMAIN = 16
-#CONCURRENT_REQUESTS_PER_IP = 16
+CONCURRENT_REQUESTS_PER_DOMAIN = 32
+#CONCURRENT_REQUESTS_PER_IP = 32
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
@@ -69,6 +69,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
+    'bigfiveleagues.pipelines.LeaguesItemPipeline': 300,
     'bigfiveleagues.pipelines.ImgDownloadPipeline': 300,
 }
 
@@ -93,13 +94,22 @@ ITEM_PIPELINES = {
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-IMAGES_STORE = '/tmp/images/leagues'
-#IMAGES_EXPIRES = 30
+IMAGES_STORE = '/Users/cloudin/Documents/images/leagues'
+IMAGES_EXPIRES = 30
 LOG_ENABLED = True
 LOG_LEVEL = "INFO"
-
+LOG_FILE = "./logs/leagues.log"
+LOG_ENCODING = "UTF-8"
+DOWNLOAD_FAIL_ON_DATALOSS = False
 
 IMAGES_THUMBS = {
 #    'small': (50, 50),
     'big': (270, 270),
 }
+
+MYSQL_HOST = '192.168.1.105'
+MYSQL_DBNAME = 'sunnywalden'         #数据库名字，请修改
+MYSQL_USER = 'walden'             #数据库账号，请修改 
+MYSQL_PASSWD = 'walden'         #数据库密码，请修改
+
+MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
