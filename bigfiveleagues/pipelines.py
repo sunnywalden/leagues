@@ -70,21 +70,21 @@ class LeaguesItemPipeline(object):
 	if isinstance(item, LeagueItem):
 		print('Handle league item now',item['league_uname'])
 		sql = "insert ignore into leagues values(%s,%s,%s,%s)"
-		st = ''
+		clubs = ''
 		for club in item['league_clubs']:
-			tmp = club.encode('UTF-8')
-			st += club + ','
-		print(st,str(st))
-		params = (item['league_uname'], item['name'], item['img_urls'], st)
+#			tmp = club.encode('UTF-8')
+			club += club + ','
+		print(clubs)
+		params = (item['league_uname'], item['name'], item['img_urls'], clubs)
 #		params = (item['league_uname'], item['name'], item['img_urls'], str(item['league_clubs']))
 	elif isinstance(item, ClubItem):
 		print('Handle club item now',item['club_uname'])
  		sql = "insert ignore into clubs values(%s,%s,%s,%s,%s,%s,%s,%s)"
-		st = ''
+		players = ''
 		for player in item['club_players']:
-			tmp = player.encode('UTF-8')
-			st += player + ','
-		print(st,str(st))
+#			tmp = player.encode('UTF-8')
+			players += player + ','
+		print(players)
  		params = (
 			item['club_league']+'-'+item['name'],
 			item['club_league'],
@@ -92,7 +92,7 @@ class LeaguesItemPipeline(object):
 			item['club_uname'],
 			item['img_urls'],
 			item['club_manager'],
-			str(st),
+			players,
 			item['club_soccerfield']
 			)
 	elif isinstance(item, PlayerItem):
