@@ -11,10 +11,10 @@ from scrapy import Request
 import pymysql
 from .items import LeagueItem,ClubItem,PlayerItem
 from scrapy.utils.project import get_project_settings  #导入seetings配置
+import logging
 
-#class BigfiveleaguesPipeline(object):
-#    def process_item(self, item, spider):
-#        return item
+
+logger = logging.getLogger(__name__)
 
 def dbHandle():
         '''1、@classmethod声明一个类方法，而对于平常我们见到的叫做实例方法。
@@ -31,72 +31,94 @@ def dbHandle():
             cursorclass=pymysql.cursors.DictCursor,
         )
 	if conn:
-		print('Connect to mysql success!')
+		logger.info('Connect to mysql success!')
 	return conn
 
 class ImgDownloadPipeline(ImagesPipeline):
+	logger = logging.getLogger(__name__)
 
         def get_media_requests(self, item, info):
                 for img_url in item['img_urls']:
-                        print('Start download image', img_url)
+                        self.logger.info('Start download image %s', img_url)
                         yield Request(img_url,meta={'item':item,'index':item['img_urls'].index(img_url)})
-
-
 
         def file_path(self, request, response=None, info=None):
                 item = request.meta['item']  # 通过上面的meta传递过来item
                 index = request.meta['index']
 		if item.get('player_club'):
-			print('player',item['player_uname'],'info scrapy now')
+			self.logger.info('player %s of club %s of league %s info scrapy now', \
+				item['player_name'],item['player_club'],item['player_league'])
                 	logo_name = item['player_club'] + '_'  + item['name']  + '.jpg'
-		else:
+			img_path = "%s%s"%(self.img_store, item['player_league'], item['player_club'])
+		elif item.get('club_league'):
+			self.logger.info('club %s of league %s info scrapy now',item['name'],item['club_league'])
 			logo_name = item['name'] + '.jpg'
-                print('logo name is', logo_name)
-                return logo_name
+			img_path = "%s%s"%(self.img_store, item['club_league'])
+		else:
+			self.logger.info('league %s info scrapy now',item['name'])
+			logo_name = item['name'] + '.jpg'
+			img_path = "%s%s"%(self.img_store, item['name'])
+		if os.path.exists(img_path) == False:
+ 			os.mkdir(img_path)
+                self.logger.info('the path item pircture to save is %s', img_path + logo_name)
+#		return logo_name
+		final_file = img_path + logo_name
+                return final_file
 
 class LeaguesItemPipeline(object):
     '''保存到数据库中对应的class
        1、在settings.py文件中配置
        2、在自己实现的爬虫类中yield item,会自动执行'''
-
-
+    logger = logging.getLogger(__name__)
     # pipeline默认调用
     def process_item(self, item, spider):
-
-# 写入数据库中
-    # SQL语句在这里
+	# 写入数据库中
+    	# SQL语句在这里
 	conn = dbHandle()
 	cursor = conn.cursor()
 	if isinstance(item, LeagueItem):
-		print('Handle league item now',item['league_uname'])
+		self.logger.info('Handle league %s item now',item['name'])
 		sql = "insert ignore into leagues values(%s,%s,%s,%s)"
 		clubs = ''
 		for club in item['league_clubs']:
-#			tmp = club.encode('UTF-8')
-			club += club + ','
-		print(clubs)
-		params = (item['league_uname'], item['name'], item['img_urls'], clubs)
-#		params = (item['league_uname'], item['name'], item['img_urls'], str(item['league_clubs']))
+			clubs += club + ','
+		for logo_url in item['img_urls']:
+			final_logo_url = logo_url 
+		params = (item['league_uname'], item['name'], final_logo_url, clubs)
+		self.logger.info(sql,item['league_uname'], item['name'], final_logo_url, clubs)
 	elif isinstance(item, ClubItem):
-		print('Handle club item now',item['club_uname'])
+		self.logger.info('Handle club %s item now',item['name'])
+#		self.logger.info(clubs)
  		sql = "insert ignore into clubs values(%s,%s,%s,%s,%s,%s,%s,%s)"
 		players = ''
 		for player in item['club_players']:
-#			tmp = player.encode('UTF-8')
 			players += player + ','
-		print(players)
+		final_club_logo_url = ''
+		for club_logo_url in item['img_urls']:
+                        final_club_logo_url = club_logo_url
  		params = (
 			item['club_league']+'-'+item['name'],
 			item['club_league'],
 			item['name'],
 			item['club_uname'],
-			item['img_urls'],
+			final_club_logo_url,
 			item['club_manager'],
 			players,
 			item['club_soccerfield']
 			)
+		self.logger.info(sql,item['club_league']+'-'+item['name'], \
+                        item['club_league'], \
+                        item['name'], \
+                        item['club_uname'], \
+                        final_club_logo_url, \
+                        item['club_manager'], \
+                        players, \
+                        item['club_soccerfield'])
 	elif isinstance(item, PlayerItem):
-		print('Handle player item now',item['player_uname'])
+		self.logger.info('Handle player %s item now',item['name'])
+		player_portrait_url = ''
+                for portrait_url in item['img_urls']:
+                        player_portrait_url = portrait_url
 		sql = "insert ignore into players values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 		params = (
 			item['player_club']+'-'+item['name'],
@@ -104,7 +126,7 @@ class LeaguesItemPipeline(object):
 			item['player_club'],
 			item['name'],
 			item['player_uname'],
-			item['img_urls'],
+			player_portrait_url,
 			item['player_number'],
 			item['player_position'],
 			item['player_nationality'],
@@ -113,13 +135,25 @@ class LeaguesItemPipeline(object):
 			item['player_age'],
 			item['player_networth']
 			)
+		self.logger.info(sql,item['player_club']+'-'+item['name'],
+                        item['player_league'], \
+                        item['player_club'], \
+                        item['name'], \
+                        item['player_uname'], \
+                        player_portrait_url, \
+                        item['player_number'], \
+                        item['player_position'], \
+                        item['player_nationality'], \
+                        item['player_high'], \
+                        item['player_weight'], \
+                        item['player_age'], \
+                        item['player_networth'])
  	try:
 		cursor.execute(sql, params)
 		conn.commit()
             # 关闭连接
 	except Exception as error:
             # 出现错误时打印错误日志
-		print(error)
+		self.logger.info(error)
 		conn.rollback()
 	return item
-

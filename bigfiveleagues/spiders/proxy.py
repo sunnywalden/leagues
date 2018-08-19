@@ -9,7 +9,7 @@ def get_proxy():
 		proxy = 'http://'+requests.get("http://123.207.35.36:5010/get/").content
 		print(proxy)
 		proxie.append(proxy)
-	with open('/tmp/proxies.txt', 'a') as f:
+	with open('/tmp/proxies_leagues.txt', 'a') as f:
 		for proxy in proxie:
         		f.write(proxy+'\n')
 
