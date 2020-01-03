@@ -6,9 +6,9 @@
 
 图片下载效果：
 
-![image](https://github.com/sunnywalden/leagues/raw/master/demo/leagues_pirctures.png)
+![demo](demo/leagues_pirctures.png)
 
 
 数据库一览：
 
-![image](https://github.com/sunnywalden/leagues/raw/master/demo/leagues_data.png)
+![database](demo/leagues_data.png)
