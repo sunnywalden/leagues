@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from shutil import which
+
 # Scrapy settings for bigfiveleagues project
 #
 # For simplicity, this file contains only settings considered important or
@@ -8,7 +10,9 @@
 #     https://doc.scrapy.org/en/latest/topics/settings.html
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-
+SELENIUM_DRIVER_NAME = 'chrome'
+SELENIUM_DRIVER_EXECUTABLE_PATH = '/usr/local/bin/chromedriver'
+SELENIUM_DRIVER_ARGUMENTS = ['--headless']
 BOT_NAME = 'bigfiveleagues'
 
 SPIDER_MODULES = ['bigfiveleagues.spiders']
@@ -52,14 +56,25 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
+
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+}
+
 DOWNLOADER_MIDDLEWARES = {
+    'scrapy_selenium.SeleniumMiddleware': 800,
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
     'scrapy_proxies.RandomProxy': 100,
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
-#    'bigfiveleagues.middlewares.BigfiveleaguesDownloaderMiddleware': 543,
-#    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware':None,
-#    'bigfiveleagues.middlewares.ProxyMiddleWare':125,
-#    'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware':None
+}
+
+TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
+PLAYWRIGHT_BROWSER_TYPE = "chromium"
+PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 60 * 1000  # 10 seconds
+PLAYWRIGHT_LAUNCH_OPTIONS = {
+    "headless": True,
+    "timeout": 20 * 1000,  # 20 seconds
 }
 
 # Enable or disable extensions
@@ -72,7 +87,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'bigfiveleagues.pipelines.LeaguesItemPipeline': 300,
-    'bigfiveleagues.pipelines.ImgDownloadPipeline': 300,
+    'bigfiveleagues.pipelines.FileDownloadPipeline': 500,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -96,11 +111,11 @@ ITEM_PIPELINES = {
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-IMAGES_STORE = '/Users/cloudin/Documents/images/leagues'
+FILES_STORE = '/Users/sunnywalden/leagues_images'
 IMAGES_EXPIRES = 30
 LOG_ENABLED = True
 LOG_LEVEL = "INFO"
-LOG_FILE = "./logs/leagues.log"
+LOG_FILE = "./bigfiveleagues/logs/leagues.log"
 LOG_ENCODING = "UTF-8"
 DOWNLOAD_FAIL_ON_DATALOSS = False
 DOWNLOAD_TIMEOUT = 15
@@ -116,9 +131,12 @@ PROXY_MODE = 0
 #    'big': (270, 270),
 #}
 
-MYSQL_HOST = '192.168.1.105'
-MYSQL_DBNAME = 'sunnywalden'         #数据库名字，请修改
-MYSQL_USER = 'walden'             #数据库账号，请修改 
-MYSQL_PASSWD = 'walden'         #数据库密码，请修改
+MYSQL_HOST = '192.168.0.109'
+MYSQL_DBNAME = 'leagues'         #数据库名字，请修改
+MYSQL_USER = 'walden'             #数据库账号，请修改
+MYSQL_PASSWD = 'walden0429'        #数据库密码，请修改
 
 MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
+
+# Add or update the following line
+REQUEST_FINGERPRINTER_IMPLEMENTATION = '2.7'

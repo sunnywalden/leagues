@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 
 # Define here the models for your spider middleware
 #
@@ -125,7 +126,7 @@ class ProxyMiddleWare(object):
         def get_random_proxy(self):
                 '''随机从文件中读取proxy'''
                 while 1:
-                        with open('/tmp/proxies.txt', 'r') as f:
+                        with open('/tmp/proxies_leagues.txt', 'r') as f:
                                 proxies = f.readlines()
                         if proxies:
                                 break
